@@ -83,13 +83,9 @@ class CartPoleSwingUpEnv(gym.Env):
         self.np_random, seed = seeding.np_random(seed)
         return [seed]
 
-    def _reward_fn(self, state, action, next_state):  # pylint: disable=unused-argument
-        reward_theta = (np.cos(next_state.theta, dtype=np.float32) + 1.0) / 2.0
-        reward_x = np.cos(
-            (next_state.x_pos / self.params.x_threshold) * (np.pi / 2.0),
-            dtype=np.float32,
-        )
-        return reward_theta * reward_x
+    @staticmethod
+    def _reward_fn(state, action, next_state):  # pylint: disable=unused-argument
+        return np.cos(next_state.theta, dtype=np.float32)
 
     def _terminal(self, state):
         x_pos = state.x_pos
