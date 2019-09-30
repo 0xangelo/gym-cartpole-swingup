@@ -2,7 +2,6 @@
 Cart pole swing-up: modified version of:
 https://github.com/hardmaru/estool/blob/master/custom_envs/cartpole_swingup.py
 """
-import math
 from collections import namedtuple
 
 import numpy as np
@@ -59,54 +58,64 @@ class CartPoleSwingUpEnv(gym.Env):
         self.np_random, seed = seeding.np_random(seed)
         return [seed]
 
-    def _reward(self):
-        reward_theta = (np.cos(self.state.theta) + 1.0) / 2.0
-        reward_x = np.cos((self.state.x_pos / self.x_threshold) * (np.pi / 2.0))
+    def _reward_fn(self, state, action, next_state):  # pylint: disable=unused-argument
+        reward_theta = (np.cos(next_state.theta, dtype=np.float32) + 1.0) / 2.0
+        reward_x = np.cos(
+            (next_state.x_pos / self.x_threshold) * (np.pi / 2.0), dtype=np.float32
+        )
         return reward_theta * reward_x
 
-    def _terminal(self):
-        x_pos = self.state.x_pos
+    def _terminal(self, state):
+        x_pos = state.x_pos
         if x_pos < -self.x_threshold or x_pos > self.x_threshold:
             return True
         return False
 
-    def _get_obs(self):
-        x_pos, x_dot, theta, theta_dot = self.state
-        return np.array([x_pos, x_dot, np.cos(theta), np.sin(theta), theta_dot])
-
-    def step(self, action):
-        # Valid action
-        action = np.clip(action, -1.0, 1.0)[0]
+    def _transition_fn(self, state, action):
         action *= self.physics.forcemag
 
-        state = self.state
-        physics = self.physics
-
-        sin_theta = math.sin(state.theta)
-        cos_theta = math.cos(state.theta)
+        sin_theta = np.sin(state.theta)
+        cos_theta = np.cos(state.theta)
 
         m_p_l = self.pole.mass * self.pole.length
         masstotal = self.cart.mass + self.pole.mass
         xdot_update = (
             -2 * m_p_l * (state.theta_dot ** 2) * sin_theta
-            + 3 * self.pole.mass * physics.gravity * sin_theta * cos_theta
+            + 3 * self.pole.mass * self.physics.gravity * sin_theta * cos_theta
             + 4 * action
-            - 4 * physics.friction * state.x_dot
+            - 4 * self.physics.friction * state.x_dot
         ) / (4 * masstotal - 3 * self.pole.mass * cos_theta ** 2)
         thetadot_update = (
             -3 * m_p_l * (state.theta_dot ** 2) * sin_theta * cos_theta
-            + 6 * masstotal * physics.gravity * sin_theta
-            + 6 * (action - physics.friction * state.x_dot) * cos_theta
+            + 6 * masstotal * self.physics.gravity * sin_theta
+            + 6 * (action - self.physics.friction * state.x_dot) * cos_theta
         ) / (4 * self.pole.length * masstotal - 3 * m_p_l * cos_theta ** 2)
 
-        self.state = State(
-            x_pos=state.x_pos + state.x_dot * physics.deltat,
-            theta=state.theta + state.theta_dot * physics.deltat,
-            x_dot=state.x_dot + xdot_update * physics.deltat,
-            theta_dot=state.theta_dot + thetadot_update * physics.deltat,
+        delta_t = self.physics.deltat
+        return State(
+            x_pos=state.x_pos + state.x_dot * delta_t,
+            theta=state.theta + state.theta_dot * delta_t,
+            x_dot=state.x_dot + xdot_update * delta_t,
+            theta_dot=state.theta_dot + thetadot_update * delta_t,
         )
 
-        return self._get_obs(), self._reward(), self._terminal(), {}
+    @staticmethod
+    def _get_obs(state):
+        x_pos, x_dot, theta, theta_dot = state
+        return np.array(
+            [x_pos, x_dot, np.cos(theta), np.sin(theta), theta_dot], dtype=np.float32
+        )
+
+    def step(self, action):
+        state = self.state
+        # Valid action
+        action = np.clip(action, self.action_space.low, self.action_space.high)[0]
+        self.state = next_state = self._transition_fn(self.state, action)
+        next_obs = self._get_obs(next_state)
+        reward = self._reward_fn(state, action, next_state)
+        done = self._terminal(next_state)
+
+        return next_obs, reward, done, {}
 
     def reset(self):
         self.state = State(
@@ -115,7 +124,7 @@ class CartPoleSwingUpEnv(gym.Env):
                 scale=np.array([0.2, 0.2, 0.2, 0.2]),
             )
         )
-        return self._get_obs()
+        return self._get_obs(self.state)
 
     def render(self, mode="human"):
         if self.viewer is None:
