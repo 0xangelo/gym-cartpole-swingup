@@ -2,6 +2,7 @@
 Cart pole swing-up: modified version of:
 https://github.com/hardmaru/estool/blob/master/custom_envs/cartpole_swingup.py
 """
+from dataclasses import dataclass, field
 from collections import namedtuple
 
 import numpy as np
@@ -10,15 +11,42 @@ from gym import spaces
 from gym.utils import seeding
 
 
-Physics = namedtuple("Physics", "gravity forcemag deltat friction")
+@dataclass(frozen=True)
+class CartParams:
+    """Parameters defining the Cart."""
+
+    width: float = 1 / 3
+    height: float = 1 / 6
+    mass: float = 0.5
+
+
+@dataclass(frozen=True)
+class PoleParams:
+    """Parameters defining the Pole."""
+
+    width: float = 0.05
+    length: float = 0.6
+    mass: float = 0.5
+
+
+@dataclass
+class CartPoleSwingUpParams:  # pylint: disable=no-member
+    """Parameters for physics simulation."""
+
+    gravity: float = 9.82
+    forcemag: float = 10.0
+    deltat: float = 0.01
+    friction: float = 0.1
+    x_threshold: float = 2.4
+    cart: CartParams = field(default_factory=CartParams)
+    pole: PoleParams = field(default_factory=PoleParams)
+    masstotal: float = field(init=False)
+
+    def __post_init__(self):
+        self.masstotal = self.cart.mass + self.pole.mass
+
 
 State = namedtuple("State", "x_pos x_dot theta theta_dot")
-
-Screen = namedtuple("Screen", "width height")
-
-Cart = namedtuple("Cart", "width height mass")
-
-Pole = namedtuple("Pole", "width length mass")
 
 
 class CartPoleSwingUpEnv(gym.Env):
@@ -31,10 +59,6 @@ class CartPoleSwingUpEnv(gym.Env):
     """
 
     metadata = {"render.modes": ["human", "rgb_array"], "video.frames_per_second": 50}
-    physics = Physics(gravity=9.82, forcemag=10.0, deltat=0.01, friction=0.1)
-    cart = Cart(width=1 / 3, height=1 / 6, mass=0.5)
-    pole = Pole(width=0.05, length=0.6, mass=0.5)
-    x_threshold = 2.4  # Distance limit from the center
 
     def __init__(self):
         high = np.array(
@@ -49,6 +73,7 @@ class CartPoleSwingUpEnv(gym.Env):
 
         self.action_space = spaces.Box(-1.0, 1.0, shape=(1,))
         self.observation_space = spaces.Box(-high, high)
+        self.params = CartPoleSwingUpParams()
 
         self.seed()
         self.viewer = None
@@ -61,37 +86,41 @@ class CartPoleSwingUpEnv(gym.Env):
     def _reward_fn(self, state, action, next_state):  # pylint: disable=unused-argument
         reward_theta = (np.cos(next_state.theta, dtype=np.float32) + 1.0) / 2.0
         reward_x = np.cos(
-            (next_state.x_pos / self.x_threshold) * (np.pi / 2.0), dtype=np.float32
+            (next_state.x_pos / self.params.x_threshold) * (np.pi / 2.0),
+            dtype=np.float32,
         )
         return reward_theta * reward_x
 
     def _terminal(self, state):
         x_pos = state.x_pos
-        if x_pos < -self.x_threshold or x_pos > self.x_threshold:
+        if x_pos < -self.params.x_threshold or x_pos > self.params.x_threshold:
             return True
         return False
 
     def _transition_fn(self, state, action):
-        action *= self.physics.forcemag
+        # pylint: disable=no-member
+        action *= self.params.forcemag
 
         sin_theta = np.sin(state.theta)
         cos_theta = np.cos(state.theta)
 
-        m_p_l = self.pole.mass * self.pole.length
-        masstotal = self.cart.mass + self.pole.mass
+        m_p_l = self.params.pole.mass * self.params.pole.length
         xdot_update = (
             -2 * m_p_l * (state.theta_dot ** 2) * sin_theta
-            + 3 * self.pole.mass * self.physics.gravity * sin_theta * cos_theta
+            + 3 * self.params.pole.mass * self.params.gravity * sin_theta * cos_theta
             + 4 * action
-            - 4 * self.physics.friction * state.x_dot
-        ) / (4 * masstotal - 3 * self.pole.mass * cos_theta ** 2)
+            - 4 * self.params.friction * state.x_dot
+        ) / (4 * self.params.masstotal - 3 * self.params.pole.mass * cos_theta ** 2)
         thetadot_update = (
             -3 * m_p_l * (state.theta_dot ** 2) * sin_theta * cos_theta
-            + 6 * masstotal * self.physics.gravity * sin_theta
-            + 6 * (action - self.physics.friction * state.x_dot) * cos_theta
-        ) / (4 * self.pole.length * masstotal - 3 * m_p_l * cos_theta ** 2)
+            + 6 * self.params.masstotal * self.params.gravity * sin_theta
+            + 6 * (action - self.params.friction * state.x_dot) * cos_theta
+        ) / (
+            4 * self.params.pole.length * self.params.masstotal
+            - 3 * m_p_l * cos_theta ** 2
+        )
 
-        delta_t = self.physics.deltat
+        delta_t = self.params.deltat
         return State(
             x_pos=state.x_pos + state.x_dot * delta_t,
             theta=state.theta + state.theta_dot * delta_t,
@@ -128,18 +157,23 @@ class CartPoleSwingUpEnv(gym.Env):
 
     def render(self, mode="human"):
         if self.viewer is None:
-            self.viewer = CartPoleSwingUpViewer(self.cart, self.pole, world_width=5)
+            self.viewer = CartPoleSwingUpViewer(
+                self.params.cart, self.params.pole, world_width=5
+            )
 
         if self.state is None:
             return None
 
-        self.viewer.update(self.state, self.pole)
+        self.viewer.update(self.state, self.params.pole)
         return self.viewer.render(return_rgb_array=mode == "rgb_array")
 
     def close(self):
         if self.viewer:
             self.viewer.close()
             self.viewer = None
+
+
+Screen = namedtuple("Screen", "width height")
 
 
 class CartPoleSwingUpViewer:
