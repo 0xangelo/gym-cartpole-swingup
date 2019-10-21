@@ -17,4 +17,4 @@ while not done:
     env.render()
 ```
 
-![Imgur](https://imgur.com/Z8bLLM8)
+![](https://i.imgur.com/Z8bLLM8.png)
