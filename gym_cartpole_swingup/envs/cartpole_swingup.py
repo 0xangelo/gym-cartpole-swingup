@@ -41,9 +41,11 @@ class CartPoleSwingUpParams:  # pylint: disable=no-member
     cart: CartParams = field(default_factory=CartParams)
     pole: PoleParams = field(default_factory=PoleParams)
     masstotal: float = field(init=False)
+    mpl: float = field(init=False)
 
     def __post_init__(self):
         self.masstotal = self.cart.mass + self.pole.mass
+        self.mpl = self.pole.mass * self.pole.length
 
 
 State = namedtuple("State", "x_pos x_dot theta theta_dot")
@@ -100,20 +102,19 @@ class CartPoleSwingUpEnv(gym.Env):
         sin_theta = np.sin(state.theta)
         cos_theta = np.cos(state.theta)
 
-        m_p_l = self.params.pole.mass * self.params.pole.length
         xdot_update = (
-            -2 * m_p_l * (state.theta_dot ** 2) * sin_theta
+            -2 * self.params.mpl * (state.theta_dot ** 2) * sin_theta
             + 3 * self.params.pole.mass * self.params.gravity * sin_theta * cos_theta
             + 4 * action
             - 4 * self.params.friction * state.x_dot
         ) / (4 * self.params.masstotal - 3 * self.params.pole.mass * cos_theta ** 2)
         thetadot_update = (
-            -3 * m_p_l * (state.theta_dot ** 2) * sin_theta * cos_theta
+            -3 * self.params.mpl * (state.theta_dot ** 2) * sin_theta * cos_theta
             + 6 * self.params.masstotal * self.params.gravity * sin_theta
             + 6 * (action - self.params.friction * state.x_dot) * cos_theta
         ) / (
             4 * self.params.pole.length * self.params.masstotal
-            - 3 * m_p_l * cos_theta ** 2
+            - 3 * self.params.mpl * cos_theta ** 2
         )
 
         delta_t = self.params.deltat
