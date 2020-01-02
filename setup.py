@@ -9,7 +9,7 @@ def read_file(file_path):
 
 setup(
     name="gym-cartpole-swingup",
-    version="0.0.3",
+    version="0.0.4",
     author="Ângelo G. Lovatto",
     author_email="angelolovatto@gmail.com",
     description="A simple, continuous-control environment for OpenAI Gym",
