@@ -30,7 +30,7 @@ class PoleParams:
 
 
 @dataclass
-class CartPoleSwingUpParams:  # pylint: disable=no-member
+class CartPoleSwingUpParams:  # pylint: disable=no-member,too-many-instance-attributes
     """Parameters for physics simulation."""
 
     gravity: float = 9.82
@@ -63,18 +63,9 @@ class CartPoleSwingUpEnv(gym.Env):
     metadata = {"render.modes": ["human", "rgb_array"], "video.frames_per_second": 50}
 
     def __init__(self):
-        high = np.array(
-            [
-                np.finfo(np.float32).max,
-                np.finfo(np.float32).max,
-                np.finfo(np.float32).max,
-                np.finfo(np.float32).max,
-                np.finfo(np.float32).max,
-            ]
-        )
-
         self.action_space = spaces.Box(-1.0, 1.0, shape=(1,))
-        self.observation_space = spaces.Box(-high, high)
+        high = np.finfo(np.float32).max
+        self.observation_space = spaces.Box(-high, high, shape=(5,))
         self.params = CartPoleSwingUpParams()
 
         self.seed()
@@ -87,7 +78,7 @@ class CartPoleSwingUpEnv(gym.Env):
 
     @staticmethod
     def _reward_fn(state, action, next_state):  # pylint: disable=unused-argument
-        return np.cos(next_state.theta, dtype=np.float32)
+        return (1 + np.cos(next_state.theta, dtype=np.float32)) / 2
 
     def _terminal(self, state):
         x_pos = state.x_pos
@@ -183,7 +174,10 @@ class CartPoleSwingUpViewer:
     screen = Screen(width=600, height=400)
 
     def __init__(self, cart, pole, world_width):
+        # pylint:disable=import-outside-toplevel
         from gym.envs.classic_control import rendering
+
+        # pylint:enable=import-outside-toplevel
 
         self.world_width = world_width
         screen = self.screen
