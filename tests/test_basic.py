@@ -6,7 +6,12 @@ import pytest
 import gym_cartpole_swingup as _
 
 
-@pytest.fixture(params="CartPoleSwingUp-v0 CartPoleSwingUp-v1".split())
+@pytest.fixture(
+    params="CartPoleSwingUp-v0 "
+    "CartPoleSwingUp-v1 "
+    "TorchCartPoleSwingUp-v0 "
+    "TorchCartPoleSwingUp-v1".split()
+)
 def env(request):
     return gym.make(request.param)
 
