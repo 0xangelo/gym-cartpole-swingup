@@ -1,12 +1,14 @@
-import pytest
+# pylint:disable=missing-docstring,protected-access,redefined-outer-name
+import gym
 import numpy as np
+import pytest
 
-from gym_cartpole_swingup.envs import CartPoleSwingUpEnv
+import gym_cartpole_swingup as _
 
 
-@pytest.fixture
-def env():
-    return CartPoleSwingUpEnv()
+@pytest.fixture(params="CartPoleSwingUp-v0 CartPoleSwingUp-v1".split())
+def env(request):
+    return gym.make(request.param)
 
 
 def test_init(env):
@@ -44,7 +46,7 @@ def test_reward_fn(env):
     act = env.action_space.sample()
     env.reset()
     next_state = env.state
-    rew = env._reward_fn(state, act, next_state)
+    rew = env.unwrapped._reward_fn(state, act, next_state)
 
     assert np.isscalar(rew)
     assert np.isfinite(rew)
@@ -54,7 +56,7 @@ def test_transition_fn(env):
     env.reset()
     state = env.state
     act = env.action_space.sample()
-    next_state = env._transition_fn(state, act)
+    next_state = env.unwrapped._transition_fn(state, act)
 
     assert isinstance(next_state, tuple)
     assert all(np.isfinite(s) for s in next_state)
