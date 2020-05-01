@@ -78,7 +78,7 @@ class CartPoleSwingUpEnv(gym.Env):
 
     @staticmethod
     def _reward_fn(state, action, next_state):  # pylint: disable=unused-argument
-        return (1 + np.cos(next_state.theta, dtype=np.float32)) / 2
+        raise NotImplementedError
 
     def _terminal(self, state):
         x_pos = state.x_pos
@@ -159,6 +159,22 @@ class CartPoleSwingUpEnv(gym.Env):
         if self.viewer:
             self.viewer.close()
             self.viewer = None
+
+
+class CartPoleSwingUpV0(CartPoleSwingUpEnv):
+    """CartPoleSwingUp with cosine reward."""
+
+    @staticmethod
+    def _reward_fn(state, action, next_state):
+        return np.cos(next_state.theta, dtype=np.float32)
+
+
+class CartPoleSwingUpV1(CartPoleSwingUpEnv):
+    """CartPoleSwingUp with strictly positive reward."""
+
+    @staticmethod
+    def _reward_fn(state, action, next_state):
+        return (1 + np.cos(next_state.theta, dtype=np.float32)) / 2
 
 
 Screen = namedtuple("Screen", "width height")
