@@ -1,4 +1,4 @@
-# pylint: disable=missing-docstring
+# pylint:disable=missing-docstring
 from setuptools import setup, find_packages
 
 
