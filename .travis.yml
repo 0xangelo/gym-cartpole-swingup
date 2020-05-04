@@ -17,8 +17,9 @@ install:
   - conda info -a
 
   # Replace dep1 dep2 ... with your dependencies
-  - conda env create -f environment.yml
-  - conda activate gym-cartpole-swingup
+  - conda create -q -n test-environment python=$TRAVIS_PYTHON_VERSION
+  - conda activate test-environment
+  - conda install pytest
   - pip install .
 # command to run tests
 script: pytest
