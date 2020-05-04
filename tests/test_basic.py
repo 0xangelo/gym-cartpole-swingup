@@ -1,17 +1,23 @@
-# pylint:disable=missing-docstring,protected-access,redefined-outer-name
+# pylint:disable=missing-docstring,protected-access,redefined-outer-name,unused-import
 import gym
 import numpy as np
 import pytest
 
-import gym_cartpole_swingup as _
+import gym_cartpole_swingup
 
 
-@pytest.fixture(
-    params="CartPoleSwingUp-v0 "
-    "CartPoleSwingUp-v1 "
-    "TorchCartPoleSwingUp-v0 "
-    "TorchCartPoleSwingUp-v1".split()
-)
+ENV_IDS = "CartPoleSwingUp-v0 CartPoleSwingUp-v1".split()
+
+try:
+    import torch
+
+    ENV_IDS += "TorchCartPoleSwingUp-v0 TorchCartPoleSwingUp-v1".split()
+
+except ImportError:
+    pass
+
+
+@pytest.fixture(params=ENV_IDS)
 def env(request):
     return gym.make(request.param)
 

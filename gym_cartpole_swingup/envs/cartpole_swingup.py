@@ -76,6 +76,26 @@ class CartPoleSwingUpEnv(gym.Env):
         self.np_random, seed = seeding.np_random(seed)
         return [seed]
 
+    def step(self, action):
+        state = self.state
+        # Valid action
+        action = np.clip(action, self.action_space.low, self.action_space.high)
+        self.state = next_state = self._transition_fn(self.state, action)
+        next_obs = self._get_obs(next_state)
+        reward = self._reward_fn(state, action, next_state)
+        done = self._terminal(next_state)
+
+        return next_obs, reward, done, {}
+
+    def reset(self):
+        self.state = State(
+            *self.np_random.normal(
+                loc=np.array([0.0, 0.0, np.pi, 0.0]),
+                scale=np.array([0.2, 0.2, 0.2, 0.2]),
+            ).astype(np.float32)
+        )
+        return self._get_obs(self.state)
+
     @staticmethod
     def _reward_fn(state, action, next_state):  # pylint: disable=unused-argument
         raise NotImplementedError
@@ -88,7 +108,7 @@ class CartPoleSwingUpEnv(gym.Env):
 
     def _transition_fn(self, state, action):
         # pylint: disable=no-member
-        action *= self.params.forcemag
+        action = action[0] * self.params.forcemag
 
         sin_theta = np.sin(state.theta)
         cos_theta = np.cos(state.theta)
@@ -122,26 +142,6 @@ class CartPoleSwingUpEnv(gym.Env):
         return np.array(
             [x_pos, x_dot, np.cos(theta), np.sin(theta), theta_dot], dtype=np.float32
         )
-
-    def step(self, action):
-        state = self.state
-        # Valid action
-        action = np.clip(action, self.action_space.low, self.action_space.high)[0]
-        self.state = next_state = self._transition_fn(self.state, action)
-        next_obs = self._get_obs(next_state)
-        reward = self._reward_fn(state, action, next_state)
-        done = self._terminal(next_state)
-
-        return next_obs, reward, done, {}
-
-    def reset(self):
-        self.state = State(
-            *self.np_random.normal(
-                loc=np.array([0.0, 0.0, np.pi, 0.0]),
-                scale=np.array([0.2, 0.2, 0.2, 0.2]),
-            )
-        )
-        return self._get_obs(self.state)
 
     def render(self, mode="human"):
         if self.viewer is None:
