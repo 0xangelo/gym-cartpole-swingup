@@ -1,15 +1,62 @@
 # pylint:disable=missing-module-docstring,import-error
 import torch
 
-from .cartpole_swingup import CartPoleSwingUpV0, CartPoleSwingUpV1
+from .cartpole_swingup import CartPoleSwingUpEnv, State
 
 
-class TorchCartPoleSwingUpMixin:
+class TorchCartPoleSwingUpEnv(CartPoleSwingUpEnv):
     """
     CartPoleSwingUp task that exposes differentiable reward and transition functions.
     """
 
     # pylint:disable=too-few-public-methods
+
+    def _transition_fn(self, state, action):
+        action = torch.as_tensor(action).float()
+        state = torch.as_tensor(state)
+        expanded_next_state, _ = self.transition_fn(self.expand_state(state), action)
+        next_state = self.shrink_state(expanded_next_state)
+        return State(*next_state.numpy())
+
+    def _reward_fn(self, state, action, next_state):
+        action = torch.as_tensor(action).float()
+        state = torch.as_tensor(state)
+        next_state = torch.as_tensor(next_state)
+        reward = self.reward_fn(
+            self.expand_state(state), action, self.expand_state(next_state)
+        )
+        return reward.item()
+
+    def _terminal(self, state):
+        state = torch.as_tensor(state)
+        return self.terminal(state).item()
+
+    def terminal(self, state):
+        """Return a batched tensor indicating which states are terminal."""
+        return (state[..., 0] < -self.params.x_threshold) & (
+            state[..., 0] > self.params.x_threshold
+        )
+
+    @staticmethod
+    def expand_state(state):
+        """Return state with theta broken down into sin and cos."""
+        return torch.cat(
+            [
+                state[..., :2],
+                state[..., 2:3].cos(),
+                state[..., 2:3].sin(),
+                state[..., 3:],
+            ],
+            dim=-1,
+        )
+
+    @staticmethod
+    def shrink_state(state):
+        """Return state with sin and cos combined into theta."""
+        return torch.cat(
+            [state[..., :2], torch.atan2(state[3:4], state[..., 2:3]), state[..., 4:]],
+            dim=-1,
+        )
 
     def transition_fn(self, state, action, sample_shape=()):
         """Compute the next state and its log-probability.
@@ -71,15 +118,20 @@ class TorchCartPoleSwingUpMixin:
         new_costheta = cos_theta * cos_theta_dot - sin_theta * sin_theta_dot
         return new_costheta, new_sintheta
 
+    @staticmethod
+    def reward_fn(state, action, next_state):  # pylint: disable=unused-argument
+        """Return the batched reward for the batched transition."""
+        raise NotImplementedError
 
-class TorchCartPoleSwingUpV0(TorchCartPoleSwingUpMixin, CartPoleSwingUpV0):
+
+class TorchCartPoleSwingUpV0(TorchCartPoleSwingUpEnv):
     # pylint:disable=missing-docstring
     @staticmethod
     def reward_fn(state, action, next_state):  # pylint: disable=unused-argument
         return next_state[..., 2]
 
 
-class TorchCartPoleSwingUpV1(TorchCartPoleSwingUpMixin, CartPoleSwingUpV1):
+class TorchCartPoleSwingUpV1(TorchCartPoleSwingUpEnv):
     # pylint:disable=missing-docstring
     @staticmethod
     def reward_fn(state, action, next_state):  # pylint: disable=unused-argument
