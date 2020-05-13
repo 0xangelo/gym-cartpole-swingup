@@ -33,7 +33,7 @@ class TorchCartPoleSwingUpEnv(CartPoleSwingUpEnv):
 
     def terminal(self, state):
         """Return a batched tensor indicating which states are terminal."""
-        return (state[..., 0] < -self.params.x_threshold) & (
+        return (state[..., 0] < -self.params.x_threshold) | (
             state[..., 0] > self.params.x_threshold
         )
 

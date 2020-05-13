@@ -63,9 +63,10 @@ class CartPoleSwingUpEnv(gym.Env):
     metadata = {"render.modes": ["human", "rgb_array"], "video.frames_per_second": 50}
 
     def __init__(self):
-        self.action_space = spaces.Box(-1.0, 1.0, shape=(1,))
-        high = np.finfo(np.float32).max
-        self.observation_space = spaces.Box(-high, high, shape=(5,))
+        high = np.array([1.0], dtype=np.float32)
+        self.action_space = spaces.Box(low=-high, high=high)
+        high = np.array([np.finfo(np.float32).max] * 5, dtype=np.float32)
+        self.observation_space = spaces.Box(low=-high, high=high)
         self.params = CartPoleSwingUpParams()
 
         self.seed()
