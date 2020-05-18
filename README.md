@@ -1,3 +1,5 @@
+![PyPI](https://img.shields.io/pypi/v/gym-cartpole-swingup?color=blue&logo=PyPI&logoColor=white)
+
 # gym-cartpole-swingup
 A simple, continuous-control environment for OpenAI Gym
 
