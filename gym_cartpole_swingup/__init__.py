@@ -1,5 +1,12 @@
 # pylint:disable=missing-module-docstring
+import importlib
+
 from gym.envs.registration import register
+
+__author__ = """Ângelo Gregório Lovatto"""
+__email__ = "angelolovatto@gmail.com"
+__version__ = "0.1.0"
+
 
 register(
     id="CartPoleSwingUp-v0",
@@ -14,9 +21,7 @@ register(
 )
 
 
-try:
-    import torch as _
-
+if importlib.util.find_spec("torch"):
     register(
         id="TorchCartPoleSwingUp-v0",
         entry_point="gym_cartpole_swingup.envs.torch_cartpole_swingup:"
@@ -30,5 +35,3 @@ try:
         "TorchCartPoleSwingUpV1",
         max_episode_steps=500,
     )
-except ImportError:
-    pass

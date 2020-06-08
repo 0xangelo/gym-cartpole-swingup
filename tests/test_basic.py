@@ -46,6 +46,7 @@ def test_step(env):
 
     assert next_obs in env.observation_space
     assert np.isscalar(rew)
+    assert rew >= 0 if "v1" in env.spec.id else rew < 0
     assert isinstance(done, bool)
     assert isinstance(info, dict)
     assert not list(info.keys())
