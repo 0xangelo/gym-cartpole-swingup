@@ -1,6 +1,11 @@
 # pylint:disable=missing-module-docstring
 from gym.envs.registration import register
 
+__author__ = """Ângelo Gregório Lovatto"""
+__email__ = "angelolovatto@gmail.com"
+__version__ = "0.0.9"
+
+
 register(
     id="CartPoleSwingUp-v0",
     entry_point="gym_cartpole_swingup.envs.cartpole_swingup:CartPoleSwingUpV0",
