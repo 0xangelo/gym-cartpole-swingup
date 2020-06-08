@@ -5,7 +5,7 @@ from gym.envs.registration import register
 
 __author__ = """Ângelo Gregório Lovatto"""
 __email__ = "angelolovatto@gmail.com"
-__version__ = "0.0.9"
+__version__ = "0.1.0"
 
 
 register(
