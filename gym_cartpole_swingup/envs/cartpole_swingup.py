@@ -102,7 +102,7 @@ class CartPoleSwingUpEnv(gym.Env):
         raise NotImplementedError
 
     def _terminal(self, state):
-        return abs(state.x_pos) > self.params.x_threshold
+        return bool(abs(state.x_pos) > self.params.x_threshold)
 
     def _transition_fn(self, state, action):
         # pylint: disable=no-member
