@@ -1,4 +1,3 @@
-[![Travis (.com)](https://img.shields.io/travis/com/angelolovatto/gym-cartpole-swingup?logo=Travis%20CI&logoColor=important)](https://travis-ci.com/angelolovatto/gym-cartpole-swingup)
 [![PyPI](https://img.shields.io/pypi/v/gym-cartpole-swingup?color=blue&logo=PyPI&logoColor=white)](https://pypi.org/project/gym-cartpole-swingup/)
 
 # gym-cartpole-swingup
