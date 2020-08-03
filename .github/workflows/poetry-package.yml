@@ -6,8 +6,8 @@ name: Poetry package
 on: [push, pull_request]
 
 jobs:
-  build:
-
+  test:
+    name: Pytest
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -20,8 +20,46 @@ jobs:
       with:
         python-version: ${{ matrix.python-version }}
     - name: Install Poetry
-      uses: dschep/install-poetry-action@v1.3
+      uses: Gr1N/setup-poetry@v2
+    - run: |
+        poetry env info
+    - name: Cache dependencies
+      uses: actions/cache@v2
+      with:
+        path: ~/.cache/pypoetry/virtualenvs
+        key: ${{ runner.os }}-py${{ matrix.python-version }}-poetry-${{ hashFiles('poetry.lock') }}
+        restore-keys: |
+          ${{ runner.os }}-py${{ matrix.python-version }}-poetry-
     - name: Install package
-      run: poetry install
+      run: |
+        poetry install
     - name: Run pytest
-      run: poetry run pytest
+      run: poetry run pytest --ignore=tests/raylab/policy/modules/v0
+
+  publish:
+    name: Publish
+    needs: test
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: '3.8'
+    - name: Install Poetry
+      uses: Gr1N/setup-poetry@v2
+    - run: |
+        poetry env info
+    - name: Cache dependencies
+      uses: actions/cache@v2
+      with:
+        path: ~/.cache/pypoetry/virtualenvs
+        key: ${{ runner.os }}-py3.8-poetry-${{ hashFiles('poetry.lock') }}
+        restore-keys: |
+          ${{ runner.os }}-py3.8-poetry-
+    - name: Install package
+      run: poetry install --no-dev
+    - name: Build and publish
+      run: poetry publish --build --username ${{ secrets.PYPI_USERNAME }} --password ${{ secrets.PYPI_PASSWORD }}
