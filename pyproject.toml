@@ -19,7 +19,7 @@ gym = "^0.18.0"
 
 [tool.poetry.dev-dependencies]
 tox = "^3.15.2"
-mypy = "^0.780"
+mypy = "^0.790"
 torch = "^1.5.0"
 pylint = "^2.5.3"
 black = "^19.10b0"
