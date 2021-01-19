@@ -1,11 +1,12 @@
 # pylint:disable=missing-module-docstring
 import importlib
 
+import poetry_version
 from gym.envs.registration import register
 
 __author__ = """Ângelo Gregório Lovatto"""
 __email__ = "angelolovatto@gmail.com"
-__version__ = "0.1.0"
+__version__ = poetry_version.extract(source_file=__file__)
 
 
 register(
