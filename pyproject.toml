@@ -14,8 +14,8 @@ classifiers = [
 
 [tool.poetry.dependencies]
 python = ">=3.7"
-gym = "^0.17.2"
 poetry-version = "^0.1.5"
+gym = "^0.18.0"
 
 [tool.poetry.dev-dependencies]
 tox = "^3.15.2"
