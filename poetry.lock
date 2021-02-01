@@ -621,7 +621,7 @@ typing-extensions = "*"
 
 [[package]]
 name = "tox"
-version = "3.21.2"
+version = "3.21.3"
 description = "tox is a generic virtualenv management and test command line tool"
 category = "dev"
 optional = false
@@ -722,7 +722,7 @@ testing = ["pytest (>=3.5,!=3.7.3)", "pytest-checkdocs (>=1.2.3)", "pytest-flake
 [metadata]
 lock-version = "1.1"
 python-versions = ">=3.7"
-content-hash = "700b7248c83aa6771dd4164822305076813f8d5daff957dfbb1aae7cd0afbb01"
+content-hash = "a023a0f16e84434d7ecc4f095e8cd8034f4079f10915686f55f64f66a0ca587b"
 
 [metadata.files]
 appdirs = [
@@ -1125,8 +1125,8 @@ torch = [
     {file = "torch-1.7.1-cp39-none-macosx_10_9_x86_64.whl", hash = "sha256:38d67f4fb189a92a977b2c0a38e4f6dd413e0bf55aa6d40004696df7e40a71ff"},
 ]
 tox = [
-    {file = "tox-3.21.2-py2.py3-none-any.whl", hash = "sha256:0aa777ee466f2ef18e6f58428c793c32378779e0a321dbb8934848bc3e78998c"},
-    {file = "tox-3.21.2.tar.gz", hash = "sha256:f501808381c01c6d7827c2f17328be59c0a715046e94605ddca15fb91e65827d"},
+    {file = "tox-3.21.3-py2.py3-none-any.whl", hash = "sha256:76df3db6eee929bb62bdbacca5bb6bc840669d98e86a015b7a57b7df0a6eaf8b"},
+    {file = "tox-3.21.3.tar.gz", hash = "sha256:854e6e4a71c614b488f81cb88df3b92edcb1a9ec43d4102e6289e9669bbf7f18"},
 ]
 traitlets = [
     {file = "traitlets-5.0.5-py3-none-any.whl", hash = "sha256:69ff3f9d5351f31a7ad80443c2674b7099df13cc41fc5fa6e2f6d3b0330b0426"},
