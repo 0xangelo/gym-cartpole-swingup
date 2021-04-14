@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "gym-cartpole-swingup"
-version = "0.1.2"
+version = "0.1.3"
 description = "A simple, continuous-control environment for OpenAI Gym"
 authors = ["Ângelo Gregório Lovatto <angelolovatto@gmail.com>"]
 license = "GNU General Public License v3.0"
